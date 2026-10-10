@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+<form class="card" method="post" action="/admin/settings" style="display:flex;flex-direction:column;gap:10px"><h3>功能開關</h3>
+<label><input type="checkbox" name="email_enabled" {{'checked' if on('email_enabled')}}> 開啟 Email 訂閱 / 每日精選 / VIP 即時 Email {% if not ready.resend %}<span class="bad">(未設 RESEND_API_KEY,不會真正發送)</span>{% endif %}</label>
+<label><input type="checkbox" name="stripe_enabled" {{'checked' if on('stripe_enabled')}}> 開啟信用卡付款(Stripe) {% if not ready.stripe %}<span class="bad">(未設 STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET,前台不會顯示)</span>{% endif %}</label>
+<label><input type="checkbox" name="manual_pay_enabled" {{'checked' if on('manual_pay_enabled')}}> 開啟 FPS / PayMe 手動付款登記</label>
+<div class="row"><label>月費 HK$ <input name="price_monthly" type="number" step="1" min="1" value="{{get_setting('price_monthly')}}" style="width:90px"></label>
+<label>年費 HK$ <input name="price_yearly" type="number" step="1" min="1" value="{{get_setting('price_yearly')}}" style="width:90px"></label>
+<label>免費用戶延遲(分鐘) <input name="free_delay_min" type="number" min="0" value="{{get_setting('free_delay_min')}}" style="width:80px"></label></div>
+<textarea name="manual_pay_text" rows="3" placeholder="手動付款說明(顯示在 VIP 頁)">{{get_setting('manual_pay_text')}}</textarea>
+<input name="site_notice" placeholder="全站公告(留空則不顯示)" value="{{get_setting('site_notice')}}">
+<div class="row"><input name="operator_name" placeholder="營運者/公司名稱(顯示在私隱政策與條款)" value="{{get_setting('operator_name')}}" style="flex:1"><input name="contact_email" placeholder="聯絡電郵" value="{{get_setting('contact_email')}}"></div>
+<label><input type="checkbox" name="legal_reviewed" {{'checked' if get_setting('legal_draft')=='0'}}> 私隱政策與條款已由專業人士審閱(勾選後隱藏頁面上的「草稿」警示)</label>
+<div><button class="btn">儲存</button> <span class="mut">Bot {{'✅' if ready.bot else '❌'}} · 機票 API {{'✅' if ready.tp else '❌'}}</span></div></form>
+<h3>待核實的手動付款</h3>
+{% for p in pend %}<div class="card"><div class="row"><b style="flex:1">#{{p.id}} HK${{p.amount|int}} · {{p.days}} 日 · TG {{p.tg or '—'}} · {{p.email or '—'}}<br><span class="mut">備註:{{p.note}}</span></b>
+<form method="post" action="/admin/pay/{{p.id}}/approve"><button class="btn">核實並開通</button></form><form method="post" action="/admin/pay/{{p.id}}/reject"><button class="btn alt">拒絕</button></form></div></div>
+{% else %}<div class="card mut">沒有待處理項目。</div>{% endfor %}
+<form class="card row" method="post" action="/admin/vip"><b>手動開通 VIP</b><input name="chat_id" placeholder="Telegram chat_id"><input name="email" placeholder="Email"><input name="days" type="number" value="30" style="width:80px"><button class="btn">+日數</button></form>
+<h3>登記聯盟收入(抄各聯盟後台數字,用來評估哪類內容賺錢)</h3>
+<form class="card row" method="post" action="/admin/revenue"><input name="day" type="date" value="{{today}}" required><input name="source" placeholder="來源 klook / trip / card / aviasales" required><input name="amount" type="number" step="0.01" placeholder="HK$" required style="width:100px"><input name="note" placeholder="備註"><button class="btn">登記</button></form>
+{% for r in rev %}<div class="mut">{{r.day}} · {{r.source}} · HK${{r.amount}} {{r.note}}</div>{% endfor %}
+<h3>最近已付款</h3>{% for p in paid %}<div class="mut">{{p.provider}} · HK${{p.amount|int}} · TG {{p.tg or '—'}} · {{p.email or '—'}}</div>{% else %}<div class="mut">暫無</div>{% endfor %}
+{% endblock %}

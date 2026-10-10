@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}機票最平價追蹤|著數飛{% endblock %}{% block body %}
+<section class="hero"><h1>✈️ 香港出發・最新最平機票</h1><p>過去 24 小時各航線最低來回價(來自比價 API,實際價錢以訂購頁為準)。</p></section>
+<div class="card"><table><tr><th>航線</th><th>最低價</th><th>出發日</th><th></th></tr>
+{% for r in rows %}<tr><td>{{C.CITY.get(r.origin,r.origin)}} → {{C.CITY.get(r.dest,r.dest)}}</td><td class="price">HK${{'{:,.0f}'.format(r.price)}}</td><td>{{r.depart_date}}</td>
+<td><a class="btn alt" href="{{r.link}}" rel="sponsored nofollow noopener" target="_blank">查看</a></td></tr>
+{% else %}<tr><td colspan="4" class="mut">尚未有數據(請在 .env 設定 TP_TOKEN,等待首次抓取)。</td></tr>{% endfor %}</table></div>
+{% if C.BOT_USERNAME %}<p class="mut">想價錢低於目標先通知你?用 Telegram Bot:<code>/alert HKG TYO 1500</code></p>{% endif %}
+{% endblock %}

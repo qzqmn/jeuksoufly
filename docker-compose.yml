@@ -1,0 +1,20 @@
+services:
+  jeuksoufly:
+    image: ghcr.io/${GHCR_OWNER}/jeuksoufly:latest   # 由 GitHub Actions 構建(見 .github/workflows/docker.yml)
+    container_name: jeuksoufly
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "8000:8000"          # 用 Cloudflare Tunnel 時可刪除此行,不對外開端口
+    volumes:
+      - ./data:/data
+
+  # 可選:Cloudflare Tunnel。啟用:docker compose --profile tunnel up -d
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: jeuksoufly-tunnel
+    restart: unless-stopped
+    profiles: ["tunnel"]
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}

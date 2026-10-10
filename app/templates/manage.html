@@ -1,0 +1,7 @@
+{% extends "base.html" %}{% block title %}管理/取消訂閱|著數飛{% endblock %}{% block body %}
+<section class="hero"><h1>管理或取消 VIP 訂閱</h1><p>信用卡訂閱可在此取消、更改付款方式及查看收據。</p></section>
+{% if sent %}<div class="card">✅ 如果此電郵有對應的訂閱,我們已寄出管理連結(30 分鐘內有效)。請查看收件箱及垃圾郵件匣。</div>
+{% elif not can %}<div class="card">信用卡訂閱管理暫未開放,請電郵 <a href="mailto:{{get_setting('contact_email')}}">{{get_setting('contact_email')}}</a> 聯絡我們。</div>
+{% else %}<form class="card row" method="post"><input type="email" name="email" placeholder="付款時使用的 Email" required style="flex:1;min-width:220px"><button class="btn">寄送管理連結</button></form>
+<div class="card mut">用 Telegram 開通的訂戶,可直接向 Bot 發送 <code>/manage</code>。取消後,VIP 仍可使用至已付費期間結束。FPS/PayMe 付款為一次性,毋須取消。</div>{% endif %}
+{% endblock %}

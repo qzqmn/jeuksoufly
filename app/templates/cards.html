@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block title %}信用卡外遊回贈計算機|著數飛{% endblock %}{% block body %}
+<section class="hero"><h1>💳 信用卡外遊回贈計算機</h1><p>揀消費類別同金額,即睇邊張卡回贈最多。</p></section>
+{% if data._notice %}<div class="card mut">⚠️ {{data._notice}}</div>{% endif %}
+<form class="card row" method="get"><select name="category">{% for k,v in data.categories.items() %}<option value="{{k}}" {{'selected' if k==category}}>{{v}}</option>{% endfor %}</select>
+HK$ <input type="number" name="amount" value="{{amount|int}}" min="0" step="100" style="width:120px"><button class="btn">計算</button></form>
+{% for r in results %}<div class="card"><div class="row"><h3 style="flex:1;margin:0">{{loop.index}}. {{r.card.name}}</h3><span class="price">HK${{'{:,.0f}'.format(r.reward)}}</span></div>
+<div class="mut">回贈率 {{(r.rate*100)|round(1)}}% · 年費 HK${{r.card.annual_fee}} · {{r.card.note}}</div>
+<div style="margin-top:8px"><a class="btn" href="/go/card/{{r.card.id}}" rel="sponsored nofollow noopener" target="_blank">了解/申請</a></div></div>{% endfor %}
+{% endblock %}

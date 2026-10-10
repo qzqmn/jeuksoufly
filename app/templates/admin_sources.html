@@ -1,0 +1,35 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+{% if test_rows is not none and test_rows %}<div class="card"><h3>測試結果:{{test_name}}</h3><table><tr><th>航線/來源</th><th>數據點</th><th>最低價</th><th>結果</th></tr>
+{% for r in test_rows %}<tr><td>{{r.route}}</td><td>{{r.points}}</td><td>{{ ('HK$'~('{:,.0f}'.format(r.best))) if r.best else '—' }}</td><td class="{{'good' if r.ok else 'bad'}}">{{ 'OK' if r.ok else r.err }}</td></tr>{% endfor %}</table>
+<div class="mut">測試不會發佈優惠,但會把價格寫入歷史(用作日後降價比較)。</div></div>{% endif %}
+<h3>票價來源(Provider)</h3>
+{% for p in provs %}<form class="card" method="post" action="/admin/sources/provider/{{p.key}}" style="display:flex;flex-direction:column;gap:8px">
+<div class="row"><b style="flex:1">{{ {'travelpayouts':'Travelpayouts / Aviasales(快取價,免費)','ignav':'Ignav(即時搜尋價,按請求收費)','serpapi':'SerpApi Google Flights(含 Google「價格偏低」判斷)'}[p.key] }}</b>
+<label><input type="checkbox" name="enabled" {{'checked' if p.enabled}}> 啟用</label>
+<label>間隔(分鐘) <input type="number" name="interval_min" min="5" value="{{p.interval_min}}" style="width:90px"></label></div>
+<textarea name="config" rows="2">{{p.config}}</textarea>
+<div class="mut">{% if p.key=='travelpayouts' %}參數:months_ahead = 向前查幾多個月。{% elif p.key=='serpapi' %}參數:offsets、trip_days;airport_map 可覆蓋城市→機場(預設 TYO=NRT,HND 等);link_via_aviasales=true 時有 TP marker 就改用 Aviasales 搜尋連結(請先手動點一條確認可用)。每個出發日 = 1 次搜尋,免費額度每月 250 次。{% else %}參數:offsets = 距今幾多日出發(逐個日期各查一次)、trip_days = 行程日數、market = 市場(HK 回傳 HKD)。每條航線每輪 = offsets 數量個請求,注意費用。{% endif %}
+ {% if (p.key=='travelpayouts' and not keys.tp) or (p.key=='ignav' and not keys.ignav) or (p.key=='serpapi' and not keys.serp) %}<span class="bad">尚未設定 API key(到「整合設定」)</span>{% endif %}</div>
+<div class="row"><button class="btn">儲存</button><button class="btn alt" formaction="/admin/sources/test/provider/{{p.key}}">測試全部航線覆蓋</button></div></form>{% endfor %}
+<h3>航線(出發地-目的地,城市或機場 IATA 代碼)</h3>
+<div class="card">{% for r in routes %}<div class="row" style="margin:4px 0"><b style="flex:1">{{r.origin}} → {{r.dest}} {{'' if r.enabled else '(停用)'}}</b>
+<form method="post" action="/admin/sources/route/{{r.id}}/toggle"><button class="btn alt">{{'停用' if r.enabled else '啟用'}}</button></form>
+<form method="post" action="/admin/sources/route/{{r.id}}/delete"><button class="btn alt">刪除</button></form></div>{% endfor %}
+<form class="row" method="post" action="/admin/sources/route" style="margin-top:8px"><input name="origin" value="HKG" size="5" maxlength="3"><input name="dest" placeholder="TYO" size="5" maxlength="3" required><button class="btn">新增航線</button></form></div>
+<h3>優惠來源(RSS / 網頁爬蟲)</h3>
+{% for s in custom %}<div class="card"><div class="row"><b style="flex:1">{{'RSS' if s.kind=='feed' else '爬蟲'}} · {{s.name}} {{'' if s.enabled else '(停用)'}}</b>
+<form method="post" action="/admin/sources/test/custom/{{s.id}}"><button class="btn alt">測試</button></form>
+<form method="post" action="/admin/sources/custom/{{s.id}}/toggle"><button class="btn alt">{{'停用' if s.enabled else '啟用'}}</button></form>
+<form method="post" action="/admin/sources/custom/{{s.id}}/delete"><button class="btn alt">刪除</button></form></div><div class="mut" style="word-break:break-all">{{s.config}}</div></div>
+{% else %}<div class="card mut">未有來源。下面新增 RSS 或網頁爬蟲(爬之前請先確認目標網站條款)。</div>{% endfor %}
+<form class="card" method="post" action="/admin/sources/custom" style="display:flex;flex-direction:column;gap:8px"><b>新增來源</b>
+<div class="row"><select name="kind"><option value="feed">RSS/Atom</option><option value="scrape">網頁爬蟲(CSS selector)</option></select><input name="name" placeholder="名稱" required>
+<select name="deal_kind"><option value="promo">優惠碼</option><option value="flight">機票</option><option value="cn">北上</option><option value="card">信用卡</option></select><input name="merchant" placeholder="商戶 klook / trip.com"></div>
+<input name="url" placeholder="https://..." required>
+<div class="row"><input name="item_selector" placeholder="(爬蟲)每項 selector 如 article.deal"><input name="title_selector" placeholder="標題 selector"><input name="link_selector" placeholder="連結 selector"></div>
+<div><button class="btn">新增</button></div></form>
+<form class="card" method="post" action="/admin/sources/params" style="display:flex;flex-direction:column;gap:8px"><b>偵測參數</b>
+<input name="keywords" value="{{get_setting('keywords')}}" placeholder="關鍵字,逗號分隔(RSS/爬蟲只收含關鍵字的項目;留空 = 全收)">
+<div class="row"><label>降價門檻(低於中位數 ×) <input type="number" step="0.01" name="deal_drop_ratio" value="{{get_setting('deal_drop_ratio')}}" style="width:90px"></label>
+<label>至少歷史點數 <input type="number" name="min_history" value="{{get_setting('min_history')}}" style="width:80px"></label><button class="btn">儲存</button></div></form>
+{% endblock %}

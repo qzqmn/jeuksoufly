@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+<form class="card" method="post" action="/admin/deal"><h3>手動新增優惠(人手整理快閃優惠)</h3>
+<div class="row"><select name="kind"><option value="promo">優惠碼</option><option value="flight">機票</option><option value="cn">北上</option><option value="card">信用卡</option></select>
+<input name="merchant" placeholder="商戶 (klook / trip.com)"><input name="dest" placeholder="目的地 TYO" size="8"><input name="price" placeholder="價錢" size="8"><input name="code" placeholder="優惠碼" size="12"></div>
+<div class="row" style="margin-top:8px"><input name="title" placeholder="標題" required style="flex:1;min-width:240px"><input name="url" placeholder="https://..." required style="flex:1;min-width:240px"></div>
+<div class="row" style="margin-top:8px"><input name="summary" placeholder="簡介(選填)" style="flex:1"><button class="btn">發佈</button></div></form>
+{% for d in deals %}<div class="card"><div class="row"><b style="flex:1">#{{d.id}} {{d.title}}</b><span class="mut">點擊 {{d.clicks}} · {{d.source}}{{' · 靜默' if d.silent}}</span>
+<form method="post" action="/admin/deal/{{d.id}}/delete"><button class="btn alt">刪除</button></form></div></div>{% endfor %}
+{% endblock %}

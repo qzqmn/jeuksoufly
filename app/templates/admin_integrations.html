@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+{% if flash %}<div class="card">{{flash}}</div>{% endif %}
+<div class="card mut">這裡的值儲存在資料庫(優先於環境變數,無須重啟)。留空 = 不變;填 <code>-</code> = 清除後台值。⚠️ 密鑰以明文存於 data 目錄的 SQLite,請保護好伺服器與備份。Telegram Bot token 需改 .env 並重啟容器。</div>
+<form class="card" method="post" action="/admin/integrations" style="display:flex;flex-direction:column;gap:10px">
+{% for r in rows %}<label><b>{{r.label}}</b> <span class="mut">· 目前:{{r.shown or '—'}}({{r.src}})</span><br><input name="{{r.name}}" placeholder="輸入新值" style="width:100%" autocomplete="off"></label>{% endfor %}
+<label><b>每日 Email 精選發送時間(香港時間,小時 0-23)</b><br><input name="digest_hour" value="{{digest_hour}}" style="width:80px"></label>
+<div class="mut">Stripe Webhook 網址:<code>{{webhook}}</code>(事件:checkout.session.completed、invoice.paid)</div><div><button class="btn">儲存</button></div></form>
+<form class="card row" method="post" action="/admin/integrations/test-email"><b>發送測試 Email</b><input type="email" name="to" placeholder="收件人" required><button class="btn alt">發送</button></form>
+{% endblock %}

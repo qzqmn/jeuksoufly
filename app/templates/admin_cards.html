@@ -1,0 +1,15 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+{% if err %}<div class="card bad">{{err}}</div>{% endif %}
+<div class="card mut">目前使用:{{ '後台自訂資料' if custom else 'data/cards.json 或內置示例數據(未核實)' }}。香港信用卡回贈沒有公開 API,建議流程:<b>監察銀行條款頁 → 有變更時人手核對 → 改下面的 JSON</b>。回贈率 rate 用 0~1(4% = 0.04),cap_spend = 每月簽賬上限。</div>
+<h3>條款頁變更監察{% if watch|selectattr('reviewed','equalto',0)|list %} <span class="bad">⚠️ 有頁面已更新,請核對</span>{% endif %}</h3>
+{% for w in watch %}<div class="card"><div class="row"><b style="flex:1">{{w.name}} <span class="{{'bad' if not w.reviewed else 'mut'}}">{{ '⚠️ 內容已變更,待核對' if not w.reviewed else '無變更' }}</span></b>
+{% if not w.reviewed %}<form method="post" action="/admin/cards/watch/{{w.id}}/reviewed"><button class="btn">已核對</button></form>{% endif %}
+<form method="post" action="/admin/cards/watch/{{w.id}}/delete"><button class="btn alt">刪除</button></form></div>
+<div class="mut" style="word-break:break-all"><a href="{{w.url}}" target="_blank" rel="noopener">{{w.url}}</a> · 最近檢查 {{ (((now()-w.last_checked)//3600)|string ~ ' 小時前') if w.last_checked else '未檢查' }}{% if w.error %} · <span class="bad">{{w.error}}</span>{% endif %}</div></div>
+{% else %}<div class="card mut">未有監察頁面。加入各銀行信用卡「條款及細則/回贈」頁網址,系統每 6 小時檢查一次。</div>{% endfor %}
+<form class="card row" method="post" action="/admin/cards/watch"><input name="name" placeholder="例:示例銀行 A 外幣回贈條款" required style="flex:1"><input name="url" placeholder="https://..." required style="flex:2"><button class="btn">加入監察</button></form>
+<h3>信用卡資料(JSON)</h3>
+<form class="card" method="post" action="/admin/cards" style="display:flex;flex-direction:column;gap:8px">
+<textarea name="cards_json" rows="22" style="font-family:monospace;font-size:13px">{{cards_json}}</textarea>
+<div class="row"><button class="btn" name="action" value="save">驗證並儲存</button><button class="btn alt" name="action" value="reset" onclick="return confirm('清除自訂資料,改回 cards.json / 示例?')">重設</button></div></form>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+{% if not has_key %}<div class="card bad">尚未設定 Anthropic API Key(到「🔑 整合設定」填寫),AI 抽取不會運作。</div>{% endif %}
+<div class="card mut" style="line-height:1.7">運作:定時抓取航空公司<b>官方促銷頁</b> → 內容有變才交給 Claude 抽取「出發地/目的地/價格/旅遊期/優惠截止」→ 程式再驗證(價格必須在頁面原文出現、貨幣須為 HKD、未過期、信心足夠、出發地在名單內)→ 自動發佈或進收件匣。優惠截止日一到,網站自動隱藏。<br>
+⚠️ 抓取會遵守 robots.txt;航空公司網站條款(例如 HK Express 第 5.3 條)限制為商業目的建立資料庫或複製內容,<b>正式自動發佈前建議先取得書面同意或向對方查詢夥伴計劃</b>。</div>
+{% if report %}<div class="card"><h3>結果:{{report_for}}</h3>
+{% for st in report.steps %}<div class="mut">✔ {{st}}</div>{% endfor %}{% if report.error %}<div class="bad">✖ {{report.error}}</div>{% endif %}
+{% if report.usage %}<div class="mut">Token:輸入 {{report.usage.get('input_tokens')}} / 輸出 {{report.usage.get('output_tokens')}}</div>{% endif %}
+{% if report.accepted %}<b class="good">通過驗證</b><table><tr><th>目的地</th><th>價格</th><th>類型</th><th>旅遊期</th><th>截止</th><th>信心</th></tr>
+{% for o in report.accepted %}<tr><td>{{o.destination}} {{o.destination_name}}</td><td>HK${{o.price}}</td><td>{{o.trip_type}}</td><td>{{o.travel_from}}~{{o.travel_until}}</td><td>{{o.sale_end}}</td><td>{{o.confidence}}</td></tr>{% endfor %}</table>{% endif %}
+{% if report.rejected %}<b class="bad">被拒絕(程式驗證)</b>{% for o,why in report.rejected %}<div class="mut">{{o.destination or '?'}} HK${{o.price}} — {{why}}</div>{% endfor %}{% endif %}</div>{% endif %}
+{% for w in ws %}<div class="card"><div class="row"><b style="flex:1">{{w.name}} <span class="mut">· {{ '🤖 自動發佈' if w.mode=='auto' else '📥 進收件匣' }} · 每 {{w.interval_hours}} 小時 {{'' if w.enabled else '· 已停用'}}</span></b>
+<form method="post" action="/admin/promo/{{w.id}}/test"><button class="btn alt">測試(不發佈)</button></form>
+<form method="post" action="/admin/promo/{{w.id}}/run"><button class="btn alt">立即執行</button></form>
+<form method="post" action="/admin/promo/{{w.id}}/mode"><button class="btn alt">切換模式</button></form>
+<form method="post" action="/admin/promo/{{w.id}}/toggle"><button class="btn alt">{{'停用' if w.enabled else '啟用'}}</button></form>
+<form method="post" action="/admin/promo/{{w.id}}/delete"><button class="btn alt">刪除</button></form></div>
+<div class="mut" style="word-break:break-all"><a href="{{w.url}}" target="_blank" rel="noopener">{{w.url}}</a><br>最近檢查 {{ (((now()-w.last_checked)//60)|string ~ ' 分鐘前') if w.last_checked else '從未' }} · 狀態:{{w.last_status or '—'}}</div></div>
+{% else %}<div class="card mut">未有監察頁面。貼上航空公司官方促銷頁網址(例如每周固定更新的限時優惠頁、新聞稿頁)。</div>{% endfor %}
+<form class="card" method="post" action="/admin/promo" style="display:flex;flex-direction:column;gap:8px"><b>新增監察頁面</b>
+<div class="row"><input name="name" placeholder="航空公司名(例:香港航空)" required><input name="merchant" placeholder="商戶代碼(例:hkairlines,對應聯盟模板)"><select name="mode"><option value="review">進收件匣(較安全)</option><option value="auto">自動發佈</option></select>
+<label>檢查間隔(小時) <input type="number" name="interval_hours" value="6" min="1" style="width:70px"></label></div>
+<input name="url" placeholder="https://官方促銷頁網址" required><div><button class="btn">新增</button></div></form>
+<form class="card" method="post" action="/admin/promo/settings" style="display:flex;flex-direction:column;gap:8px"><b>AI 與自動發佈設定</b>
+<label><input type="checkbox" name="ai_auto_publish" {{'checked' if get_setting('ai_auto_publish')=='1'}}> 總開關:允許「自動發佈」模式的項目直接發佈(關閉時全部進收件匣)</label>
+<div class="row"><label>模型 <input name="ai_model" value="{{get_setting('ai_model')}}" style="width:170px"></label>
+<label>最低信心 <input type="number" step="0.05" min="0.3" max="1" name="ai_min_confidence" value="{{get_setting('ai_min_confidence')}}" style="width:80px"></label>
+<label>每日自動發佈上限 <input type="number" name="ai_daily_cap" value="{{get_setting('ai_daily_cap')}}" style="width:80px"></label>
+<label>接受出發地 <input name="ai_origins" value="{{get_setting('ai_origins')}}" style="width:100px"></label><button class="btn">儲存</button></div></form>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "base.html" %}{% block title %}著數飛 VIP{% endblock %}{% block body %}
+<section class="hero"><h1>💎 著數飛 VIP</h1><p>快人一步攞到抵飛。</p></section>
+<div class="card"><table><tr><th></th><th>免費</th><th>VIP</th></tr>
+<tr><td>優惠推送(Telegram)</td><td>延遲 {{free_delay()//60}} 分鐘</td><td>即時</td></tr>
+<tr><td>Email</td><td>每日精選</td><td>每日精選 + 即時優惠</td></tr>
+<tr><td>價格提醒數量</td><td>{{C.FREE_ALERT_LIMIT}} 個</td><td>不限</td></tr>
+<tr><td>網站新優惠</td><td>延遲 {{free_delay()//60}} 分鐘</td><td>—</td></tr></table></div>
+{% if stripe or manual %}
+<div class="card"><h3>開通 VIP</h3>
+<form method="post" id="f" class="row" style="flex-direction:column;align-items:stretch;gap:10px">
+<label><input type="radio" name="plan" value="monthly" checked> 月費 HK${{pm}}/月(自動續期)</label>
+<label><input type="radio" name="plan" value="yearly"> 年費 HK${{py}}/年</label>
+<input name="tg" placeholder="Telegram chat_id(Bot 發 /vip 取得)" value="{{tg}}">
+<input name="email" type="email" placeholder="Email(選填;開通 Email 即時推送用)">
+<div class="mut">Telegram chat_id 與 Email 至少填一項,VIP 會開通到你填的帳戶。</div>
+<label class="mut"><input type="checkbox" required> 我已閱讀並同意<a href="/privacy" style="text-decoration:underline">私隱政策</a>及<a href="/terms" style="text-decoration:underline">使用條款</a>(含自動續費及取消安排)</label>
+{% if stripe %}<button class="btn" formaction="/vip/checkout">信用卡付款(Stripe)</button>{% endif %}
+{% if manual %}<div class="mut">{{manual_text}}</div><input name="note" placeholder="付款備註 / 參考編號">
+<button class="btn alt" formaction="/vip/manual">我已付款(FPS / PayMe),提交登記</button>{% endif %}
+</form></div>
+{% else %}<div class="card">VIP 付款暫未開放。{% if C.BOT_USERNAME %}<a class="btn" href="https://t.me/{{C.BOT_USERNAME}}">先訂閱 Telegram Bot</a>{% endif %}</div>{% endif %}
+<div class="mut" style="margin:10px 0">已訂閱?<a href="/vip/manage" style="text-decoration:underline">管理或取消訂閱</a></div>
+{% endblock %}

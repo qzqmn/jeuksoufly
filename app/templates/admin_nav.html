@@ -1,0 +1,3 @@
+<section class="hero"><h1>後台</h1><div class="tabs" style="display:flex;gap:6px;flex-wrap:wrap">
+{% for k,l,u in [('dash','📊 數據','/admin'),('deals','🔥 優惠','/admin/deals'),('inbox','📥 收件匣','/admin/inbox'),('promo','✈️ 促銷頁監察','/admin/promo'),('sources','🛰 數據來源','/admin/sources'),('cards','💳 信用卡','/admin/cards'),('integ','🔑 整合設定','/admin/integrations'),('settings','⚙️ 開關・付款','/admin/settings')] %}
+<a class="btn {{'' if tab==k else 'alt'}}" href="{{u}}">{{l}}</a>{% endfor %}</div></section>

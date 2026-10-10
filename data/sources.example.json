@@ -1,0 +1,10 @@
+{
+  "keywords": ["機票", "著數", "優惠", "promo", "code", "$", "折", "減", "回贈", "快閃"],
+  "feeds": [
+    {"name": "example-feed", "url": "https://example.com/feed.xml", "kind": "promo", "merchant": ""}
+  ],
+  "scrapers": [
+    {"name": "example-site", "url": "https://example.com/deals", "item_selector": "article.deal",
+     "title_selector": "h2", "link_selector": "a", "kind": "promo", "merchant": "klook"}
+  ]
+}

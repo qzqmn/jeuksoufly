@@ -1,0 +1,11 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+<div class="card mut">RSS/爬蟲抓到的項目先放這裡。<b>請用自己的文字改寫標題與簡介,並直接連到商戶/航空公司官方頁</b>(再套聯盟連結),不要原文轉載他人整理的內容。</div>
+{% for r in rows %}<form class="card" method="post" action="/admin/inbox/{{r.id}}/publish" style="display:flex;flex-direction:column;gap:8px">
+<div class="mut">來源:{{r.source}} · <a href="{{r.url}}" target="_blank" rel="noopener">原文 ↗</a></div>
+<input name="title" value="{{r.title}}" required><input name="summary" placeholder="簡介(改寫)" value="{{r.summary or ''}}">
+<input name="url" value="{{r.url}}" required placeholder="商戶官方連結">
+<div class="row"><select name="kind"><option value="promo" {{'selected' if r.kind=='promo'}}>優惠碼</option><option value="flight" {{'selected' if r.kind=='flight'}}>機票</option><option value="cn">北上</option><option value="card">信用卡</option></select>
+<input name="merchant" placeholder="商戶 klook / trip.com" value="{{r.merchant}}" size="14"><input name="dest" placeholder="目的地 TYO" size="7" value="{{r.dest or ''}}"><input type="hidden" name="price" value="{{r.price or ''}}"><input type="hidden" name="expires_at" value="{{r.expires_at or ''}}"><input name="code" placeholder="優惠碼" size="10">
+<button class="btn">發佈</button><button class="btn alt" formaction="/admin/inbox/{{r.id}}/ignore" formnovalidate>忽略</button></div></form>
+{% else %}<div class="card mut">收件匣是空的。到「數據來源」新增 RSS/爬蟲來源。</div>{% endfor %}
+{% endblock %}

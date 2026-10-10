@@ -1,0 +1,19 @@
+{% extends "base.html" %}{% block body %}
+<section class="hero"><h1>搵著數,唔使日日刷網頁</h1><p>機票降價、快閃優惠、Promo Code 一站睇,Telegram 即時提醒。</p></section>
+<div class="chips">
+<a class="chip {{'on' if not kind}}" href="/">全部</a>
+{% for k,n in [('flight','✈️ 機票'),('promo','🔥 優惠碼'),('cn','🚄 北上/大灣區'),('card','💳 信用卡')] %}<a class="chip {{'on' if kind==k}}" href="/?kind={{k}}">{{n}}</a>{% endfor %}
+{% for d in dests %}<a class="chip {{'on' if dest==d}}" href="/?dest={{d}}">{{C.CITY.get(d,d)}}</a>{% endfor %}</div>
+{% for d in deals %}
+{% if locked(d.created_at) %}
+<div class="card lock"><span class="tag">🔒 VIP 搶先</span><span class="mut">新優惠將於 {{ ((free_delay() - (now()-d.created_at))//60)+1 }} 分鐘後公開,VIP 已即時收到推送</span> · <a href="/vip" style="text-decoration:underline">了解 VIP</a></div>
+{% else %}
+<div class="card"><h3><span class="tag">{{ {'flight':'機票','cn':'北上','card':'信用卡'}.get(d.kind,'優惠') }}</span>{{d.title}}</h3>
+{% if d.summary %}<div class="mut">{{d.summary}}</div>{% endif %}
+{% if d.code %}<div>優惠碼:<code>{{d.code}}</code></div>{% endif %}
+<div class="row" style="margin-top:8px"><a class="btn" href="/go/{{d.id}}" rel="sponsored nofollow noopener" target="_blank">前往優惠 →</a>
+<span class="mut">{{ d.merchant or d.source }}</span></div></div>
+{% endif %}
+{% else %}<div class="card mut">暫時未有優惠。</div>{% endfor %}
+{% if on("email_enabled") %}<form class="card row" method="post" action="/subscribe"><b style="flex:1;min-width:180px">📧 Email 訂閱每日著數精選</b><input type="email" name="email" placeholder="you@example.com" required><label class="mut" style="width:100%"><input type="checkbox" required> 我已閱讀並同意<a href="/privacy" style="text-decoration:underline">私隱政策</a>及<a href="/terms" style="text-decoration:underline">使用條款</a>,並同意收取優惠郵件</label><button class="btn">訂閱</button></form>{% endif %}
+{% endblock %}

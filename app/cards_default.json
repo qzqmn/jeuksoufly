@@ -1,0 +1,19 @@
+{
+  "_notice": "以下為「示例數據」,上線前請按各銀行最新條款修改,並放到 data/cards.json 覆蓋。",
+  "categories": {
+    "overseas": "外幣簽賬(日本/泰國等)",
+    "travel": "機票/酒店/旅遊平台",
+    "dining": "餐飲",
+    "online": "網購",
+    "cn": "內地/大灣區消費",
+    "other": "其他"
+  },
+  "cards": [
+    {"id": "demo-a", "name": "示例信用卡 A(外幣回贈型)", "bank": "示例銀行 A", "apply_url": "https://example.com/apply-a", "annual_fee": 0,
+     "rates": {"overseas": {"rate": 0.04, "cap_spend": 10000}, "travel": {"rate": 0.02}, "other": {"rate": 0.004}}, "note": "示例:外幣簽賬 4%,每月上限 HK$10,000 簽賬"},
+    {"id": "demo-b", "name": "示例信用卡 B(旅遊型)", "bank": "示例銀行 B", "apply_url": "https://example.com/apply-b", "annual_fee": 1800,
+     "rates": {"travel": {"rate": 0.06, "cap_spend": 8000}, "overseas": {"rate": 0.03}, "other": {"rate": 0.005}}, "note": "示例:旅遊類 6%,有年費"},
+    {"id": "demo-c", "name": "示例信用卡 C(網購餐飲型)", "bank": "示例銀行 C", "apply_url": "https://example.com/apply-c", "annual_fee": 0,
+     "rates": {"online": {"rate": 0.05, "cap_spend": 6000}, "dining": {"rate": 0.03}, "cn": {"rate": 0.02}, "other": {"rate": 0.004}}, "note": "示例:網購 5%"}
+  ]
+}

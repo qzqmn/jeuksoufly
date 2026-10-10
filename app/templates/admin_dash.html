@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
+{% macro kpi(v,l) %}<div class="card kpi"><b>{{v}}</b><span>{{l}}</span></div>{% endmacro %}
+{% macro bars(series) %}{% set m = (series|map(attribute=1)|max) or 1 %}<div class="bar">{% for dd,n in series %}<i title="{{dd}}: {{n}}" style="height:{{ (n/m*100)|round }}%"></i>{% endfor %}</div><div class="mut" style="display:flex;justify-content:space-between"><span>{{series[0][0]}}</span><span>{{series[-1][0]}}</span></div>{% endmacro %}
+<h3>流量與變現(點擊 = 聯盟收入的先行指標)</h3>
+<div class="grid">{{kpi(d.pv_today,'今日瀏覽')}}{{kpi(d.pv_7,'7 日瀏覽')}}{{kpi(d.clicks_today,'今日出站點擊')}}{{kpi(d.clicks_7,'7 日出站點擊')}}{{kpi(d.ctr_7~'%','7 日點擊率')}}{{kpi('HK$'~('{:,.0f}'.format(d.aff30)),'30 日聯盟收入(手動登記)')}}{{kpi('HK$'~('{:,.0f}'.format(d.pay30)),'30 日 VIP 收入')}}{% if d.inbox_new %}<a href="/admin/inbox">{{kpi(d.inbox_new,'📥 收件匣待審核')}}</a>{% endif %}{% if d.cards_changed %}<a href="/admin/cards">{{kpi(d.cards_changed,'⚠️ 信用卡條款頁待核對')}}</a>{% endif %}{% if d.pay_pending %}<a href="/admin/settings">{{kpi(d.pay_pending,'⚠️ 待核實付款')}}</a>{% endif %}</div>
+<div class="grid" style="margin-top:10px"><div class="card"><b>近 14 日瀏覽</b>{{bars(d.pv_series)}}</div><div class="card"><b>近 14 日出站點擊</b>{{bars(d.click_series)}}</div></div>
+<h3>用戶</h3>
+<div class="grid">{{kpi(d.tg_total,'Telegram 訂閱')}}{{kpi('+'~d.tg_new7,'TG 7 日新增')}}{{kpi(d.tg_vip,'TG VIP')}}{{kpi(d.em_ok~' / '~d.em_total,'Email 已確認 / 總數')}}{{kpi('+'~d.em_new7,'Email 7 日新增')}}{{kpi(d.em_vip,'Email VIP')}}{{kpi(d.ai_calls7,'7 日 AI 抽取次數')}}{{kpi(d.ai_deals7,'7 日 AI 自動發佈')}}{{kpi(d.pushes24,'24h Telegram 推送')}}{{kpi(d.emails24,'24h 即時 Email')}}</div>
+<h3>哪些內容賺到錢(近 7 日點擊)</h3>
+<div class="grid"><div class="card"><b>熱門優惠</b>{% for r in d.top_deals %}<div class="mut">{{r.n}} · {{r.title[:36]}} <small>({{r.merchant or '—'}})</small></div>{% else %}<div class="mut">暫無點擊</div>{% endfor %}</div>
+<div class="card"><b>按商戶</b>{% for r in d.by_merchant %}<div class="mut">{{r.n}} · {{r.m}}</div>{% else %}<div class="mut">暫無</div>{% endfor %}
+<b style="display:block;margin-top:8px">信用卡申請點擊</b>{% for r in d.card_clicks %}<div class="mut">{{r.n}} · {{r.target}}</div>{% else %}<div class="mut">暫無</div>{% endfor %}</div>
+<div class="card"><b>聯盟收入(30 日,按來源)</b>{% for r in d.rev_by_src %}<div class="mut">HK${{'{:,.0f}'.format(r.n)}} · {{r.source}}</div>{% else %}<div class="mut">未登記。到「開關・付款」輸入各聯盟後台的結算數字。</div>{% endfor %}</div></div>
+<h3>數據來源健康度</h3>
+<div class="card"><div class="mut">機票價格點(24h):{{d.price_pts24}} · 最近一次:{{ (((now()-d.price_last)//60)|string ~ ' 分鐘前') if d.price_last else '從未' }} · 24h 新優惠:{{d.deals24}}</div>
+<table><tr><th>來源</th><th>最近運行</th><th>結果</th><th>累計失敗</th></tr>
+{% for s in d.sources %}<tr><td>{{s.name}}</td><td>{{ (((now()-s.last_run)//60)|string ~ ' 分鐘前') if s.last_run else '—' }}</td>
+<td class="{{'good' if not s.last_error else 'bad'}}">{{ ('OK +'~s.last_count) if not s.last_error else s.last_error }}</td><td>{{s.fails}}/{{s.runs}}</td></tr>
+{% else %}<tr><td colspan="4" class="mut">未有任何來源運行紀錄(未設 TP_TOKEN,亦未配置 sources.json)。</td></tr>{% endfor %}</table></div>
+{% endblock %}
