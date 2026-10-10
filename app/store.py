@@ -2,7 +2,7 @@ import time, json, os
 from urllib.parse import quote
 from .db import db
 import datetime as dt, secrets
-from .config import DATA_DIR, FREE_DELAY, SETTING_DEFAULTS
+from .config import DATA_DIR, FREE_DELAY, SETTING_DEFAULTS, env as env_
 
 def now(): return int(time.time())
 
@@ -90,11 +90,11 @@ SECRET_ENV = {"resend_api_key": "RESEND_API_KEY", "mail_from": "MAIL_FROM", "tp_
 
 def get_secret(name):
     v = get_setting("secret:" + name)
-    return v or os.getenv(SECRET_ENV.get(name, ""), "") or ("著數飛 <deals@example.com>" if name == "mail_from" else "")
+    return v or env_(SECRET_ENV.get(name, "")) or ("著數飛 <deals@example.com>" if name == "mail_from" else "")
 
 def secret_source(name):
     if get_setting("secret:" + name): return "後台"
-    return "環境變數" if os.getenv(SECRET_ENV.get(name, ""), "") else "未設定"
+    return "環境變數" if env_(SECRET_ENV.get(name, "")) else "未設定"
 
 def mask(v): return ("••••" + v[-4:]) if v and len(v) > 8 else ("••••" if v else "")
 

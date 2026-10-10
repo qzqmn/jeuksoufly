@@ -1,6 +1,8 @@
 {% extends "base.html" %}{% block body %}{% include "admin_nav.html" %}
 {% macro kpi(v,l) %}<div class="card kpi"><b>{{v}}</b><span>{{l}}</span></div>{% endmacro %}
 {% macro bars(series) %}{% set m = (series|map(attribute=1)|max) or 1 %}<div class="bar">{% for dd,n in series %}<i title="{{dd}}: {{n}}" style="height:{{ (n/m*100)|round }}%"></i>{% endfor %}</div><div class="mut" style="display:flex;justify-content:space-between"><span>{{series[0][0]}}</span><span>{{series[-1][0]}}</span></div>{% endmacro %}
+{% if checklist and (checklist|rejectattr(1)|list) %}<div class="card"><b>🚀 上線清單({{ (checklist|selectattr(1)|list)|length }}/{{checklist|length}})</b>
+{% for t,ok,u in checklist %}<div class="{{'good' if ok else ''}}">{{ '✅' if ok else '⬜' }} {% if u and not ok %}<a href="{{u}}" style="text-decoration:underline">{{t}}</a>{% else %}{{t}}{% endif %}</div>{% endfor %}</div>{% endif %}
 <h3>流量與變現(點擊 = 聯盟收入的先行指標)</h3>
 <div class="grid">{{kpi(d.pv_today,'今日瀏覽')}}{{kpi(d.pv_7,'7 日瀏覽')}}{{kpi(d.clicks_today,'今日出站點擊')}}{{kpi(d.clicks_7,'7 日出站點擊')}}{{kpi(d.ctr_7~'%','7 日點擊率')}}{{kpi('HK$'~('{:,.0f}'.format(d.aff30)),'30 日聯盟收入(手動登記)')}}{{kpi('HK$'~('{:,.0f}'.format(d.pay30)),'30 日 VIP 收入')}}{% if d.inbox_new %}<a href="/admin/inbox">{{kpi(d.inbox_new,'📥 收件匣待審核')}}</a>{% endif %}{% if d.cards_changed %}<a href="/admin/cards">{{kpi(d.cards_changed,'⚠️ 信用卡條款頁待核對')}}</a>{% endif %}{% if d.pay_pending %}<a href="/admin/settings">{{kpi(d.pay_pending,'⚠️ 待核實付款')}}</a>{% endif %}</div>
 <div class="grid" style="margin-top:10px"><div class="card"><b>近 14 日瀏覽</b>{{bars(d.pv_series)}}</div><div class="card"><b>近 14 日出站點擊</b>{{bars(d.click_series)}}</div></div>

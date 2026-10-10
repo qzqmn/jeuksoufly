@@ -14,6 +14,6 @@
 <div class="row" style="margin-top:8px"><a class="btn" href="/go/{{d.id}}" rel="sponsored nofollow noopener" target="_blank">前往優惠 →</a>
 <span class="mut">{{ d.merchant or d.source }}</span></div></div>
 {% endif %}
-{% else %}<div class="card mut">暫時未有優惠。</div>{% endfor %}
+{% else %}<div class="card" style="text-align:center;padding:28px 16px"><div style="font-size:34px">🛫</div><b>優惠整理中,很快上架</b><p class="mut">我們正在整理最新機票降價、快閃優惠與 Promo Code。{% if C.BOT_USERNAME %}訂閱 Telegram,第一時間收到通知。{% endif %}</p>{% if C.BOT_USERNAME %}<a class="btn" href="https://t.me/{{C.BOT_USERNAME}}">Telegram 訂閱</a>{% endif %} <a class="btn alt" href="/cards">看信用卡回贈計算機</a></div>{% endfor %}
 {% if on("email_enabled") %}<form class="card row" method="post" action="/subscribe"><b style="flex:1;min-width:180px">📧 Email 訂閱每日著數精選</b><input type="email" name="email" placeholder="you@example.com" required><label class="mut" style="width:100%"><input type="checkbox" required> 我已閱讀並同意<a href="/privacy" style="text-decoration:underline">私隱政策</a>及<a href="/terms" style="text-decoration:underline">使用條款</a>,並同意收取優惠郵件</label><button class="btn">訂閱</button></form>{% endif %}
 {% endblock %}

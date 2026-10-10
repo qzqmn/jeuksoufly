@@ -97,8 +97,13 @@ def calc(data, category, amount):
         out.append(dict(card=cd, reward=round(main + rest, 1), rate=rt["rate"]))
     return sorted(out, key=lambda x: -x["reward"])
 
+def _cards_is_real():
+    return bool(get_setting("cards_json")) or os.path.exists(os.path.join(C.DATA_DIR, "cards.json"))
+
 @app.get("/cards")
 def cards(request: Request, category: str = "overseas", amount: float = 10000):
+    if not _cards_is_real():   # 未填真實資料時不公開示例數據
+        return msg(request, "信用卡回贈計算機資料整理中,稍後上線。")
     data = _cards()
     return T.TemplateResponse(request, "cards.html", dict(data=data, category=category, amount=amount,
                                                            results=calc(data, category, max(amount, 0))))
@@ -209,7 +214,22 @@ def _paid_days(plan): return payments.PLANS[plan][1]
 
 @app.get("/admin", dependencies=[Depends(admin)])
 def admin_dash(request: Request):
-    return T.TemplateResponse(request, "admin_dash.html", dict(d=stats.dashboard(), tab="dash"))
+    with DB.db() as c:
+        n_deals = c.execute("SELECT COUNT(*) n FROM deals").fetchone()["n"]
+        n_prov = c.execute("SELECT COUNT(*) n FROM providers WHERE enabled=1").fetchone()["n"]
+        n_src = c.execute("SELECT COUNT(*) n FROM custom_sources WHERE enabled=1").fetchone()["n"] + c.execute("SELECT COUNT(*) n FROM promo_watch WHERE enabled=1").fetchone()["n"]
+    checklist = [
+        ("發佈至少 3 條真實優惠(「🔥 優惠」手動新增,用自己的文字、連到官方頁)", n_deals >= 3, "/admin/deals"),
+        ("設定 Telegram Bot(.env 的 TELEGRAM_BOT_TOKEN 與 TELEGRAM_BOT_USERNAME)", bool(C.BOT_TOKEN and C.BOT_USERNAME), None),
+        ("啟用至少一個票價來源並測試航線覆蓋", n_prov >= 1, "/admin/sources"),
+        ("新增優惠來源(RSS/爬蟲/促銷頁監察)", n_src >= 1, "/admin/promo"),
+        ("填入真實信用卡回贈資料(否則 /cards 不公開)", _cards_is_real(), "/admin/cards"),
+        ("設定聯盟連結模板(data/affiliate.json)", bool(load_json("affiliate.json", {})), None),
+        ("修改後台密碼(ADMIN_PASSWORD)", bool(C.ADMIN_PASSWORD) and "請改成" not in C.ADMIN_PASSWORD, None),
+        ("私隱政策與條款已由專業人士審閱並在後台確認", get_setting("legal_draft") == "0", "/admin/settings"),
+        ("(收費前)Resend / Stripe 設定並測試", bool(get_secret("resend_api_key")) and bool(get_secret("stripe_secret")), "/admin/integrations"),
+    ]
+    return T.TemplateResponse(request, "admin_dash.html", dict(d=stats.dashboard(), tab="dash", checklist=checklist))
 
 @app.get("/admin/deals", dependencies=[Depends(admin)])
 def admin_deals(request: Request):

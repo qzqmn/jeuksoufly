@@ -1,23 +1,33 @@
-import os
+import os, re
+
+def env(key, default=""):
+    """讀環境變數;容錯 .env 行內註解(如 `KEY=   # 說明` 被當成值)。"""
+    v = os.getenv(key)
+    if v is None: return default
+    v = v.strip()
+    if v.startswith("#"): return default
+    v = re.split(r"\s+#", v)[0].strip()
+    return v if v != "" else default
 
 def _int(k, d): 
-    try: return int(os.getenv(k, d))
+    try: return int(env(k, d))
     except ValueError: return d
 def _float(k, d):
-    try: return float(os.getenv(k, d))
+    try: return float(env(k, d))
     except ValueError: return d
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000").rstrip("/")
-DB_PATH = os.getenv("DB_PATH", "/data/jeuksoufly.db")
+BASE_URL = env("BASE_URL", "http://localhost:8000").rstrip("/")
+DB_PATH = env("DB_PATH", "/data/jeuksoufly.db")
 DATA_DIR = os.path.dirname(DB_PATH) or "."
-ADMIN_USER = os.getenv("ADMIN_USER", "admin")
+ADMIN_USER = env("ADMIN_USER", "admin")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "")
-ADMIN_CHAT_IDS = {int(x) for x in os.getenv("ADMIN_CHAT_IDS", "").replace(" ", "").split(",") if x.lstrip("-").isdigit()}
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
-BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "").lstrip("@")
-TP_TOKEN = os.getenv("TP_TOKEN", "")
-TP_MARKER = os.getenv("TP_MARKER", "")
-ROUTES = [tuple(r.strip().upper().split("-")) for r in os.getenv("ROUTES", "HKG-TYO,HKG-OSA,HKG-BKK,HKG-TPE,HKG-SEL,HKG-SIN").split(",") if "-" in r]
+ADMIN_CHAT_IDS = {int(x) for x in env("ADMIN_CHAT_IDS", "").replace(" ", "").split(",") if x.lstrip("-").isdigit()}
+BOT_TOKEN = env("TELEGRAM_BOT_TOKEN", "")
+BOT_USERNAME = env("TELEGRAM_BOT_USERNAME", "").lstrip("@")
+if not re.fullmatch(r"[A-Za-z0-9_]{4,32}", BOT_USERNAME): BOT_USERNAME = ""
+TP_TOKEN = env("TP_TOKEN", "")
+TP_MARKER = env("TP_MARKER", "")
+ROUTES = [tuple(r.strip().upper().split("-")) for r in env("ROUTES", "HKG-TYO,HKG-OSA,HKG-BKK,HKG-TPE,HKG-SEL,HKG-SIN").split(",") if "-" in r]
 MONTHS_AHEAD = _int("MONTHS_AHEAD", 4)
 FREE_DELAY = _int("FREE_DELAY_MIN", 30) * 60
 POLL_SECONDS = _int("POLL_MINUTES", 30) * 60
@@ -34,10 +44,10 @@ CITY = {
 }
 
 # ---- 付款 / Email ----
-STRIPE_SECRET = os.getenv("STRIPE_SECRET_KEY", "")
-STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
-RESEND_API_KEY = os.getenv("RESEND_API_KEY", "")
-MAIL_FROM = os.getenv("MAIL_FROM", "著數飛 <deals@example.com>")
+STRIPE_SECRET = env("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", "")
+RESEND_API_KEY = env("RESEND_API_KEY", "")
+MAIL_FROM = env("MAIL_FROM", "著數飛 <deals@example.com>")
 DIGEST_HOUR = _int("DIGEST_HOUR_HKT", 9)
 
 # 後台可改的開關/參數(存於 settings 表,此處為預設值)
